@@ -1,6 +1,6 @@
 # Per-Room HVAC Control System
 
-This project demonstrates a complete, secure, and robust middleware system for per-room temperature monitoring and HVAC control, integrating a legacy REST API with modern MQTT-based IoT sensors.
+This project integrates a legacy REST API with modern MQTT-based IoT sensors to demonstrate a comprehensive, safe, and reliable middleware system for HVAC control and per-room temperature monitoring.
 
 ---
 
@@ -22,11 +22,11 @@ This project demonstrates a complete, secure, and robust middleware system for p
 
 ## Overview
 
-- **MQTT sensors** publish temperature readings for each room.
-- **Middleware** subscribes to these readings and controls room HVAC units via a **REST API**.
-- All API endpoints are protected using **HTTP Basic Authentication**.
-- The system is robust, handling network failures, API downtime, and invalid data gracefully.
-- **Real-Time Monitoring Dashboard:** A live web interface provides real-time visibility into every room’s temperature, HVAC status, and any error conditions.
+- **MQTT sensors** report on temperature of each room.
+- **Middleware** which is the recipient of these readings also controls HVAC in each room via a **REST API**.
+- All API endpoints use **HTTP Basic Authentication**.
+- The system is robust which is proved by its performance in handling invalid data, network outages, and API outages.
+- **Real-Time Monitoring Dashboard:** Real time access to each room’s temperature, HVAC status, and error conditions is available via the live web interface.
 
 ---
 
@@ -37,56 +37,70 @@ This project demonstrates a complete, secure, and robust middleware system for p
 - Python 3.7+
 - `paho-mqtt`, `requests`, `Flask`, and `flask-socketio` libraries
 - An MQTT broker running locally (e.g., [Mosquitto](https://mosquitto.org/))
-- All code files from this repository (`middleware_service.py`, `mock_legacy_api.py`, etc.)
+- All included code files from this repository (`middleware_service.py`, `mock_legacy_api.py`, `dashboard.py`, `actuator_simulator.py`, `sensor_simulator.py`)
 
-You can install the required Python packages with:
+You can get the required Python packages with:
 
 ```sh
 pip install paho-mqtt requests flask flask-socketio eventlet
 ```
-(Before you begin, ensure your terminals' current directory(cd) is set to where you have extracted the repository files)
+(Before you start, make sure your terminal's current directory (cd) is set.)
 
-### 2. Start the Legacy HVAC API
 
-In one terminal:
-```sh
-python mock_legacy_api.py
-```
-The API will listen on `http://localhost:5000`.
+### 2. Start All Services (Recommended)
 
-### 3. Start the Middleware Service
+#### **For Windows users**
 
-In another terminal:
-```sh
-python middleware_service.py
+Run at startup all of the required components (Legacy API, Middleware Service, and Dashboard) from the included batch file:
+
+```bat
+Start_All.bat
 ```
 
-### 4. Simulate MQTT Temperature Sensors
+You are able to double click on `Start_All.bat`, or run it from the command prompt. Upon doing so three terminal windows will open each with a different service running in each.
 
-You can use the included sensor simulator script (see below), or publish test temperatures using an MQTT client such as `mosquitto_pub`.
+#### **For Linux/macOS users**
 
-### 5. Start the Real-Time Monitoring Dashboard
+On Linux and macOS you may use the provided `start_all.sh` script:
 
-In a new terminal:
-```sh
-python dashboard.py
+```bash
+./start_all.sh
 ```
-Then open [http://localhost:8080](http://localhost:8080) in your browser to monitor room temperatures and HVAC status live.
+Ensure the script is executable:
+```bash
+chmod +x start_all.sh
+```
+All services will boot in the background and in that terminal which they are run in you may use `Ctrl+C` to stop them all at once.
 
-### 6. Run Unit Tests
+---
 
-You can run the included unit tests to verify correct operation and error handling (see below).
+**Note:**  
+At http:/localhost:8880 you will not see any temperature readings until you start the sensor simulator. Go to the next section for instructions.
 
-### 7. Observe Logs and Actions
+---
 
-- Middleware actions and errors are logged to `middleware_actions.log`.
-- The console will display real-time operations, including command decisions and error conditions.
+### 3. Simulate MQTT Temperature Sensors
+
+Temperature readings from each room can be published via the included sensor simulation script, also you can use a MQTT client like `mosquitto_pub` to put in test temperatures.
+
+---
+
+### 4. Run Unit Tests
+
+To check that everything is working properly and that error handling is as expected run the included unit tests (see below).
+
+---
+
+### 5. Observe Logs and Actions
+
+- Middleware activity is logged to `middleware_actions.log`.
+- Real time operations which include command decisions and error conditions will be displayed on the console.
 
 ---
 
 ## Sensor Simulator Script
 
-This script simulates temperature sensors for all rooms, publishing random temperature readings to the MQTT broker.
+This script is used to simulate temperature sensors for all rooms, which send temperature readings to the MQTT broker at a fixed interval.
 
 ```python name=sensor_simulator.py
 import time
@@ -118,22 +132,23 @@ except KeyboardInterrupt:
 ```sh
 python sensor_simulator.py
 ```
-You should see published temperatures appearing in your middleware logs and on the dashboard.
+Published temps will be displayed on the dashboard and in the middleware logs. 
+**Temperatures will not display until the simulator is run.**
 
 ---
 
 ## Real-Time Monitoring Dashboard
 
-A web-based dashboard is included for live monitoring of your simulated data.
+You have access to a local web based dashboard which will update you in real time on your simulated data.
 
 ### Features
 
 - **Live Updates:**  
-  Displays current temperature, HVAC status, and any errors for each room in real time.
+  Displays present temperature, HVAC status and also any errors for each room in real time.
 - **Web Interface:**  
-  Connects to the backend using Flask-SocketIO and WebSockets.
+  Connects with the backend through Flask-SocketIO and WebSockets.
 - **Customizable:**  
-  Easily expand with more data, controls, or visualization.
+  Easily scale out with more data, controls, or visualization.
 
 ### How to Use
 
@@ -146,21 +161,22 @@ A web-based dashboard is included for live monitoring of your simulated data.
 2. **Open Your Browser:**  
    Go to [http://localhost:8080](http://localhost:8080)
 
-   You’ll see a table of rooms and their real-time temperatures and statuses.
+   A table of rooms and their real-time temperatures and statuses showed be displayed.  
+   **Note:** The dashboard will only show room temperatures after the sensor simulator has started publishing data.
 
 3. **Integration:**  
-   The dashboard listens for updates from the middleware and displays them as they change. It works alongside the existing simulator and middleware services.
+   The dashboard reports on middleware updates and displays the changes. It works in association with present middleware and simulation services. 
 
 #### File Structure
 
-- `dashboard.py` — Launches the Flask-SocketIO server.
+- `dashboard.py` — In dashboard.py we launch the Flask-SocketIO server.
 - `templates/dashboard.html` — Web dashboard interface.
 
 ---
 
 ## Unit Test Scripts
 
-The following unit tests verify correct authentication, error handling, and logic for the legacy API and middleware service.
+The below set of Unit tests for core components which check out proper authentication, error handling, and logic for the legacy API and middleware service.
 
 ### **Test 1: Legacy API Authentication**
 
@@ -193,9 +209,9 @@ if __name__ == "__main__":
 
 ### **Test 2: Middleware Main Logic (Manual/Interactive)**
 
-You can run the middleware and sensor simulator and observe:
-- Correct HVAC activation/deactivation when temperatures cross the threshold.
-- Correct error logging when API or MQTT is unreachable.
+You can use the middleware and sensor simulator to see:
+- Correct HVAC activation and deactivation at threshold crossings.
+- Address issues related to error logging which is a result of API or MQTT unreachability.
 
 ### **Test 3: Invalid Sensor Data Handling**
 
@@ -227,23 +243,23 @@ print("Test complete: Check middleware log for error entries.")
 
 ### Protocols
 
-- **MQTT** is used for real-time, lightweight publish/subscribe messaging from room temperature sensors to the middleware. Each room's temperature is published to a unique topic (e.g., `building/room1/temperature`).
-- **REST API** (HTTP) is used for communication between the middleware and the legacy HVAC control system:
-  - `GET /api/hvac/<room>/status` retrieves current HVAC status.
-  - `POST /api/hvac/<room>/command` activates or deactivates HVAC for a room.
-- **HTTP Basic Auth** secures all REST API endpoints to prevent unauthorized access.
+- **MQTT** is used for real time, very lightweight publish/subscribe messaging from room temp sensors to the middleware. Each room’s temperature is published to a separate topic(for example, `building/room1/temperature`).
+- **REST API** (HTTP) is used to communicate between the middleware and the legacy HVAC control system:
+  - `GET /api/hvac/<room>/status` returns present HVAC status.
+  - `POST /api/hvac/<room>/command` command to activate or deactivate HVAC in a room.
+- **HTTP Basic Auth** is used for all REST API endpoints to prevent access by unauthorized users.
 
 ### Security
 
-- The REST API requires valid HTTP Basic Authentication for all endpoints.
-- Credentials are managed securely in the middleware; all requests use Python's `requests` library with `HTTPBasicAuth`.
-- The API never processes requests without proper credentials, returning `401 Unauthorized` otherwise.
+- All to use the REST API must present valid HTTP Basic Auth.
+- The middleware which handles credentials; we use Python’s `requests` library with `HTTPBasicAuth` for all requests.
+- Requests that do not have the right credentials are not processed by the API at all; instead it returns `401 Unauthorized`.
 
 ### Error Handling
 
-- **API Downtime:** All API calls use timeouts and robust try/except logic. If the legacy API is unreachable, requests are retried several times before marking the room as in error state. The system automatically recovers if the API comes back online.
-- **Invalid Sensor Data:** Sensor readings are validated (must be between 0–35°C). If repeated invalid readings are received, the room is marked with a sensor error state and skipped until valid data arrives.
-- **MQTT Disconnects:** The middleware automatically attempts to reconnect to the MQTT broker if disconnected.
+- **API Downtime:** Timeouts and we use robust try/except logic for all API calls. We retry requests until the room goes into an error state if the legacy API won out. If the API reports back as online the system will auto recover.
+- **Invalid Sensor Data:** Valid only sensor readings must be between 0°C to 35°C. If the same invalid reading is reported again the room is put in a sensor error state and skipped out until we get what is a good report.
+- **MQTT Disconnects:** If out of connection the middleware will try to reconnect to the MQTT broker.
 
 ---
 
@@ -254,6 +270,8 @@ middleware_service.py        # Main middleware (MQTT+REST integration)
 mock_legacy_api.py           # Simulated legacy HVAC REST API (Flask)
 sensor_simulator.py          # Simulates multiple room temperature sensors
 dashboard.py                 # Flask-SocketIO real-time dashboard server
+Start_All.bat                # Batch script to start all main services (Windows)
+start_all.sh                 # Shell script to start all main services (Linux/macOS)
 templates/
     dashboard.html           # HTML template for the real-time dashboard
 test_api_auth.py             # Unit test for API authentication and status
@@ -266,11 +284,11 @@ middleware_actions.log       # Log file for middleware actions/errors
 
 ## Extending the System
 
-- **Add more rooms:** Update the `ROOMS` list in all relevant scripts.
-- **Change thresholds:** Adjust activation temperature or error handling limits in `middleware_service.py`.
-- **Deploy on multiple machines:** Change `MQTT_BROKER` and API URLs as appropriate.
-- **Integrate real sensors:** Configure your IoT devices to publish to the correct MQTT topics.
-- **Expand the dashboard:** Add historical charts, alerts, or controls to the dashboard as needed.
+- **Add more rooms:** Update the `ROOMS` array in all related scripts.
+- **Change thresholds:** Adjust settings for activation temperature or error handling in `middleware_service.py`.
+- **Deploy on multiple machines:** Change out the `MQTT_BROKER` and API URLs as required.
+- **Integrate real sensors:** Set up your IoT devices to post to the correct MQTT topics.
+- **Expand the dashboard:**  Add to the dashboard as required elements of history charts, alerts, or controls.
 
 ---
 
