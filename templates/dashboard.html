@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HVAC Monitoring Dashboard</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f3f3f3; }
+        table { border-collapse: collapse; margin: 30px auto; background: #fff; }
+        th, td { padding: 12px 24px; border: 1px solid #bbb; text-align: center; }
+        th { background: #20639b; color: #fff; }
+        .error { color: #e74c3c; font-weight: bold; }
+        .ok { color: #2ecc71; font-weight: bold; }
+        .warning { color: #e67e22; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2 style="text-align:center;">Per-Room HVAC Real-Time Dashboard</h2>
+    <table id="status-table">
+        <thead>
+            <tr>
+                <th>Room</th>
+                <th>Temperature (°C)</th>
+                <th>HVAC Active</th>
+                <th>Sensor Error</th>
+                <th>API Error</th>
+            </tr>
+        </thead>
+        <tbody id="status-body">
+        </tbody>
+    </table>
+    <script>
+        const rooms = ["room1", "room2", "room3", "room4", "room5"];
+        function renderStatus(state) {
+            const body = document.getElementById("status-body");
+            body.innerHTML = "";
+            for (let room of rooms) {
+                let temp = state.temperatures[room] !== undefined ? state.temperatures[room].toFixed(1) : "-";
+                let hvac = state.hvac_active[room];
+                let sensorErr = state.sensor_error[room];
+                let apiErr = state.api_error[room];
+                let hvacTxt = hvac === true ? "<span class='ok'>ON</span>" :
+                              hvac === false ? "<span class='warning'>OFF</span>" : "-";
+                let sensorTxt = sensorErr ? "<span class='error'>ERROR</span>" : "<span class='ok'>OK</span>";
+                let apiTxt = apiErr ? "<span class='error'>ERROR</span>" : "<span class='ok'>OK</span>";
+                body.innerHTML += `
+                    <tr>
+                        <td>${room}</td>
+                        <td>${temp}</td>
+                        <td>${hvacTxt}</td>
+                        <td>${sensorTxt}</td>
+                        <td>${apiTxt}</td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Initial load via AJAX (in case websocket is slow to connect)
+        fetch("/api/status").then(r => r.json()).then(renderStatus);
+
+        // Real-time updates via websocket
+        const socket = io();
+        socket.on("update", renderStatus);
+    </script>
+</body>
+</html>
