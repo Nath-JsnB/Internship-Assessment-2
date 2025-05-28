@@ -6,19 +6,19 @@ import random
 import paho.mqtt.client as mqtt
 
 # Define the hostname or IP address of the MQTT broker
-MQTT_BROKER = "localhost"
+MQTT_Broker = "localhost"
 # Define the port number for the MQTT broker (default for MQTT is 1883)
-MQTT_PORT = 1883
+MQTT_Port = 1883
 # List of room names to simulate temperature sensors for
 ROOMS = ["room1", "room2", "room3", "room4", "room5"]
 # Interval (in seconds) between publishing temperature updates
-PUBLISH_INTERVAL = 10  # seconds
+Publish_Interval = 10  # seconds
 
 def main():
     # Create a new MQTT client instance
-    client = mqtt.Client()
+    client = mqtt.Client(client_id="Sensor_Simulator")
     # Connect to the MQTT broker
-    client.connect(MQTT_BROKER, MQTT_PORT, 60)
+    client.connect(MQTT_Broker, MQTT_Port, 60)
     # Start a separate thread to handle network events and keep connection alive
     client.loop_start()
 
@@ -48,7 +48,7 @@ def main():
                 # Print a confirmation message to the console
                 print(f"Published: {payload}°C to {topic}")
             # Wait for the defined interval before publishing the next set of temperatures
-            time.sleep(PUBLISH_INTERVAL)
+            time.sleep(Publish_Interval)
     except KeyboardInterrupt:
         # If the user stops the script (e.g., with Ctrl+C), print a message
         print("Sensor simulation stopped.")
