@@ -290,8 +290,3 @@ middleware_actions.log       # Log file for middleware actions/errors
 - **Integrate real sensors:** Set up your IoT devices to post to the correct MQTT topics.
 - **Expand the dashboard:**  Add to the dashboard as required elements of history charts, alerts, or controls.
 
----
-
-## Contact
-
-For questions or contributions, please open an issue or pull request on this repository.
