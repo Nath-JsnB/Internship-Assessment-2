@@ -2,9 +2,9 @@
 import paho.mqtt.client as mqtt
 
 # Set the MQTT broker address (localhost for local testing)
-MQTT_BROKER = "localhost"
+MQTT_Broker = "localhost"
 # Set the MQTT broker port (default MQTT port is 1883)
-MQTT_PORT = 1883
+MQTT_Port = 1883
 # List of room names to listen for HVAC commands
 ROOMS = ["room1", "room2", "room3", "room4", "room5"]
 
@@ -53,14 +53,14 @@ def on_message(client, userdata, msg):
 
 def main():
     # Create a new MQTT client instance
-    client = mqtt.Client()
+    client = mqtt.Client(client_id="Actuator_Simulator")
     # Assign the on_connect callback
     client.on_connect = on_connect
     # Assign the on_message callback
     client.on_message = on_message
 
     # Connect to the MQTT broker
-    client.connect(MQTT_BROKER, MQTT_PORT, 60)
+    client.connect(MQTT_Broker, MQTT_Port, 60)
     # Start the network loop and block forever to wait for messages and events
     client.loop_forever()
 
