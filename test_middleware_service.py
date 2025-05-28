@@ -53,7 +53,7 @@ class TestMiddlewareService(unittest.TestCase):
         mock_post.return_value.text = "ok"
         self.service.send_hvac_command("room1", True)
         mock_post.assert_called_once_with(
-            f"{middleware_service.LEGACY_API_BASE}/room1/command",
+            f"{middleware_service.Legacy_API_Base}/room1/command",
             json={"command": "activate"},
             timeout=2,
             auth=middleware_service.AUTH
@@ -66,7 +66,7 @@ class TestMiddlewareService(unittest.TestCase):
         mock_post.return_value.text = "ok"
         self.service.send_hvac_command("room2", False)
         mock_post.assert_called_once_with(
-            f"{middleware_service.LEGACY_API_BASE}/room2/command",
+            f"{middleware_service.Legacy_API_Base}/room2/command",
             json={"command": "deactivate"},
             timeout=2,
             auth=middleware_service.AUTH
@@ -207,7 +207,7 @@ class TestMiddlewareService(unittest.TestCase):
             del self.service.api_error["roomY"]
         self.service.send_hvac_command("roomY", True)
         mock_post.assert_called_once_with(
-            f"{middleware_service.LEGACY_API_BASE}/roomY/command",
+            f"{middleware_service.Legacy_API_Base}/roomY/command",
             json={"command": "activate"},
             timeout=2,
             auth=middleware_service.AUTH
