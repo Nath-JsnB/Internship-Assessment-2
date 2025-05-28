@@ -251,7 +251,7 @@ print("Test complete: Check middleware log for error entries.")
 
 ### Security
 
-- All to use the REST API must present valid HTTP Basic Auth.
+- All endpoints to use the REST API must present valid HTTP Basic Auth.
 - The middleware which handles credentials; we use Python’s `requests` library with `HTTPBasicAuth` for all requests.
 - Requests that do not have the right credentials are not processed by the API at all; instead it returns `401 Unauthorized`.
 
