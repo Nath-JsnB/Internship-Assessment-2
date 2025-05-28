@@ -12,41 +12,41 @@ import paho.mqtt.client as mqtt
 from requests.auth import HTTPBasicAuth
 
 # MQTT broker address and port
-MQTT_BROKER = "localhost"
-MQTT_PORT = 1883
+MQTT_Broker = "localhost"
+MQTT_Port = 1883
 
 # List of rooms to manage
 ROOMS = ["room1", "room2", "room3", "room4", "room5"]
 
 # List of temperature topics for each room
-TEMP_TOPICS = [f"building/{room}/temperature" for room in ROOMS]
+Temp_Topics = [f"building/{room}/temperature" for room in ROOMS]
 
 # Base URL for legacy HVAC API
-LEGACY_API_BASE = "http://localhost:5000/api/hvac"
+Legacy_API_Base = "http://localhost:5000/api/hvac"
 
 # How often to poll in seconds
-POLL_INTERVAL = 1
+Poll_Interval = 1
 
 # Log file for middleware actions
-LOG_FILE = "middleware_actions.log"
+Log_File = "middleware_actions.log"
 
 # API credentials for legacy HVAC API
-HVAC_API_USER = "apiuser"
-HVAC_API_PASS = "apipassword"
+HVAC_API_User = "apiuser"
+HVAC_API_Pass = "apipassword"
 
 # HTTP Basic Auth object for API requests
-AUTH = HTTPBasicAuth(HVAC_API_USER, HVAC_API_PASS)
+AUTH = HTTPBasicAuth(HVAC_API_User, HVAC_API_Pass)
 
 # Retry limit and delay for API interactions
-API_RETRY_LIMIT = 3
-API_RETRY_DELAY = 1
+API_Rerty_Limit = 3
+API_Retry_Delay = 1
 
 # How many invalid data points before marking a sensor as error
-INVALID_DATA_LIMIT = 3
+Invalid_Data_Limit = 3
 
 # Configure logging to file with timestamps
 logging.basicConfig(
-    filename=LOG_FILE,
+    filename=Log_File,
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
 )
@@ -64,7 +64,7 @@ class MiddlewareService:
         # Track if a room's API is in error state
         self.api_error = {room: False for room in ROOMS}
         # Create MQTT client instance
-        self.mqtt_client = mqtt.Client()
+        self.mqtt_client = mqtt.Client(client_id="Middleware_Service")
         # Assign MQTT event handlers
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_disconnect = self.on_disconnect
@@ -75,7 +75,7 @@ class MiddlewareService:
         if rc == 0:
             print("Middleware connected to MQTT broker.")
             # Subscribe to all temperature topics
-            for topic in TEMP_TOPICS:
+            for topic in Temp_Topics:
                 client.subscribe(topic)
                 print(f"Subscribed to {topic}")
         else:
@@ -119,7 +119,7 @@ class MiddlewareService:
             # Increment invalid count and mark sensor error if above threshold
             if room in self.invalid_counts:
                 self.invalid_counts[room] += 1
-                if self.invalid_counts[room] >= INVALID_DATA_LIMIT:
+                if self.invalid_counts[room] >= Invalid_Data_Limit:
                     self.sensor_error[room] = True
                     logging.error(f"Room {room} marked as sensor error due to repeated invalid data.")
             logging.error(f"Invalid temperature data: {msg.payload} on {msg.topic}: {e}")
@@ -127,10 +127,10 @@ class MiddlewareService:
     def poll_hvac_status(self, room):
         # Poll the HVAC status for a given room from the API
         try:
-            for attempt in range(API_RETRY_LIMIT):
+            for attempt in range(API_Rerty_Limit):
                 try:
                     # Make a GET request to the status endpoint
-                    resp = requests.get(f"{LEGACY_API_BASE}/{room}/status", auth=AUTH, timeout=2)
+                    resp = requests.get(f"{Legacy_API_Base}/{room}/status", auth=AUTH, timeout=2)
                     resp.raise_for_status()
                     # Parse status from JSON response
                     status = resp.json().get("status")
@@ -142,10 +142,10 @@ class MiddlewareService:
                 except requests.RequestException as e:
                     logging.error(f"Error polling HVAC status for {room} (attempt {attempt+1}): {e}")
                     print(f"[ERROR] Error polling HVAC status for {room} (attempt {attempt+1}): {e}")
-                    time.sleep(API_RETRY_DELAY)
+                    time.sleep(API_Retry_Delay)
             # Mark API error if all retries failed
             self.api_error[room] = True
-            logging.error(f"API marked as error for {room} after {API_RETRY_LIMIT} retries.")
+            logging.error(f"API marked as error for {room} after {API_Rerty_Limit} retries.")
         except Exception as e:
             # Catch-all for unexpected polling errors
             print(f"[ERROR] Failed to poll HVAC status for {room}: {e}")
@@ -154,11 +154,11 @@ class MiddlewareService:
     def send_hvac_command(self, room, activate: bool):
         # Send an activate/deactivate command to the HVAC API for a room
         command = "activate" if activate else "deactivate"
-        for attempt in range(API_RETRY_LIMIT):
+        for attempt in range(API_Rerty_Limit):
             try:
                 # POST command to API
                 resp = requests.post(
-                    f"{LEGACY_API_BASE}/{room}/command",
+                    f"{Legacy_API_Base}/{room}/command",
                     json={"command": command},
                     timeout=2,
                     auth=AUTH
@@ -173,19 +173,19 @@ class MiddlewareService:
                 # Log request-related errors, retry
                 logging.error(f"Error sending HVAC command '{command}' for {room} (attempt {attempt+1}): {e}")
                 print(f"[ERROR] Error sending HVAC command '{command}' for {room} (attempt {attempt+1}): {e}")
-                time.sleep(API_RETRY_DELAY)
+                time.sleep(API_Retry_Delay)
             except Exception as e:
                 # Catch-all for unexpected exceptions, retry
                 logging.error(f"Unexpected exception sending HVAC command '{command}' for {room} (attempt {attempt+1}): {e}")
                 print(f"[ERROR] Unexpected error sending HVAC command '{command}' for {room} (attempt {attempt+1}): {e}")
-                time.sleep(API_RETRY_DELAY)
+                time.sleep(API_Retry_Delay)
         # Mark API as error if all retries failed
         self.api_error[room] = True
-        logging.error(f"API marked as error for {room} after {API_RETRY_LIMIT} retries.")
+        logging.error(f"API marked as error for {room} after {API_Rerty_Limit} retries.")
 
     def run(self):
         # Connect to MQTT broker and start message loop in a separate thread
-        self.mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
+        self.mqtt_client.connect(MQTT_Broker, MQTT_Port, 60)
         thread = threading.Thread(target=self.mqtt_client.loop_forever)
         thread.daemon = True
         thread.start()
@@ -220,7 +220,7 @@ class MiddlewareService:
                             self.send_hvac_command(room, False)
                             self.hvac_active[room] = False
                     # Wait before next poll iteration
-                    time.sleep(POLL_INTERVAL)
+                    time.sleep(Poll_Interval)
                 except Exception as e:
                     # Log and print any uncaught exceptions in main loop
                     logging.error(f"Exception in main loop: {e}", exc_info=True)
