@@ -17,6 +17,8 @@ Publish_Interval = 10  # seconds
 def main():
     # Create a new MQTT client instance
     client = mqtt.Client(client_id="Sensor_Simulator")
+    # Add the Basic Auth Username and Password
+    client.username_pw_set("apiuser", "apipassword")
     # Connect to the MQTT broker
     client.connect(MQTT_Broker, MQTT_Port, 60)
     # Start a separate thread to handle network events and keep connection alive
