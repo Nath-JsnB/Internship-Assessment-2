@@ -65,6 +65,8 @@ class MiddlewareService:
         self.api_error = {room: False for room in ROOMS}
         # Create MQTT client instance
         self.mqtt_client = mqtt.Client(client_id="Middleware_Service")
+        # Add the Basic Auth Username and Password
+        self.mqtt_client.username_pw_set("apiuser", "apipassword")
         # Assign MQTT event handlers
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_disconnect = self.on_disconnect
